@@ -3,244 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultra Advanced Visual HTML Editor</title>
+    <title>Pro Visual HTML Editor</title>
     <style>
-        :root { 
-            --bg: #1e1e24; 
-            --sidebar: #252530; 
-            --panel-bg: #323242;
-            --text: #e0e0e0; 
-            --accent: #6c5ce7; 
-            --accent-hover: #a29bfe;
-            --danger: #ff7675;
+        :root {
+            --bg: #181820;
+            --sidebar: #22222d;
+            --panel-bg: #2d2d3a;
+            --text: #e0e0e0;
+            --accent: #00d2d3;
+            --accent-hover: #01a3a4;
+            --danger: #ff6b6b;
             --border: #111118;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; display: flex; height: 100vh; background-color: var(--bg); color: var(--text); overflow: hidden; position: relative; }
-        
-        /* Layout Structure */
-        .sidebar { 
-            width: 320px; 
-            background: var(--sidebar); 
-            display: flex; 
-            flex-direction: column; 
-            border-right: 2px solid var(--border); 
-            position: relative; 
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 20;
-            flex-shrink: 0;
-        }
-        
-        .sidebar.collapsed {
-            margin-left: -320px;
-        }
+        body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; display: flex; height: 100vh; background-color: var(--bg); color: var(--text); overflow: hidden; }
 
-        /* Sidebar Collapse/Expand Toggle Button */
-        .sidebar-toggle-btn {
-            position: absolute;
-            right: -18px;
-            top: 15px;
-            width: 18px;
-            height: 38px;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 0 6px 6px 0;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            box-shadow: 3px 0 6px rgba(0,0,0,0.3);
-            z-index: 25;
-            transition: background 0.2s;
-        }
+        /* Layout Structure */
+        .sidebar { width: 320px; background: var(--sidebar); display: flex; flex-direction: column; border-right: 2px solid var(--border); transition: margin-left 0.3s ease; z-index: 20; }
+        .sidebar.collapsed { margin-left: -320px; }
+
+        .sidebar-toggle-btn { position: absolute; right: -18px; top: 15px; width: 18px; height: 38px; background: var(--accent); color: #111; font-weight: bold; border: none; border-radius: 0 6px 6px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; z-index: 25; }
         .sidebar-toggle-btn:hover { background: var(--accent-hover); }
 
-        .main-content { flex: 1; display: flex; flex-direction: column; position: relative; height: 100vh; overflow: hidden; }
-        
-        /* Top Editor Area */
-        .top-editor { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            border-bottom: 2px solid var(--border); 
-            background: #1e1e1e; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            min-height: 0;
-        }
-        
-        /* When preview is expanded, hide top editor */
-        .main-content.preview-expanded .top-editor {
-            display: none !important;
-        }
+        .main-content { flex: 1; display: flex; flex-direction: column; position: relative; height: 100vh; }
 
-        /* Bottom Preview Area */
-        .bottom-preview { 
-            flex: 1.2; 
-            background: #ffffff; 
-            position: relative; 
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
+        .top-editor { flex: 1; display: flex; flex-direction: column; border-bottom: 2px solid var(--border); background: #1e1e1e; transition: all 0.3s; min-height: 0; }
+        .main-content.preview-expanded .top-editor { display: none !important; }
 
-        .main-content.preview-expanded .bottom-preview {
-            flex: 1;
-            height: 100vh;
-        }
+        .bottom-preview { flex: 1.2; background: #ffffff; position: relative; display: flex; flex-direction: column; min-height: 0; }
+        .main-content.preview-expanded .bottom-preview { flex: 1; height: 100vh; }
 
-        /* Preview Expand/Collapse Button at Top Edge Middle */
-        .preview-expand-btn {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--accent);
-            color: #ffffff;
-            border: none;
-            padding: 4px 16px;
-            font-size: 11px;
-            font-weight: bold;
-            border-radius: 0 0 8px 8px;
-            cursor: pointer;
-            z-index: 30;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
-        }
-        .preview-expand-btn:hover {
-            background: var(--accent-hover);
-            padding-bottom: 6px;
-        }
-        
-        /* Sidebar Tabs */
-        .tabs { display: flex; background: #1a1a20; }
-        .tab-btn { flex: 1; padding: 12px 5px; background: none; border: none; color: #888; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.2s; }
-        .tab-btn:hover { color: #fff; }
+        .preview-expand-btn { position: absolute; top: 0; left: 50%; transform: translateX(-50%); background: var(--accent); color: #111; border: none; padding: 4px 16px; font-size: 11px; font-weight: bold; border-radius: 0 0 8px 8px; cursor: pointer; z-index: 30; display: flex; gap: 6px; }
+        .preview-expand-btn:hover { padding-bottom: 6px; }
+
+        .tabs { display: flex; background: #16161e; }
+        .tab-btn { flex: 1; padding: 12px 5px; background: none; border: none; color: #888; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 3px solid transparent; }
         .tab-btn.active { color: #fff; border-bottom: 3px solid var(--accent); background: var(--sidebar); }
-        
-        /* Item Lists */
+
         .item-list { padding: 15px; overflow-y: auto; flex: 1; }
-        .list-item { background: var(--panel-bg); padding: 12px; margin-bottom: 10px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s, background 0.2s; border: 1px solid transparent; }
-        .list-item:hover { background: #4a4a5a; border-color: var(--accent); transform: translateY(-2px); }
-        
-        /* Sidebar Quick Editor Panel */
-        .element-editor { display: none; padding: 18px; background: var(--sidebar); border-top: 2px solid var(--border); box-shadow: 0 -4px 10px rgba(0,0,0,0.2); }
-        .element-editor.active { display: flex; flex-direction: column; gap: 10px; animation: slideUp 0.3s ease; }
-        
+        .list-item { background: var(--panel-bg); padding: 12px; margin-bottom: 10px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: space-between; border: 1px solid transparent; transition: 0.2s; }
+        .list-item:hover { background: #3d3d4e; border-color: var(--accent); }
+
+        .element-editor { display: none; padding: 18px; background: var(--sidebar); border-top: 2px solid var(--border); }
+        .element-editor.active { display: flex; flex-direction: column; gap: 10px; animation: slideUp 0.3s; }
+
         .input-group { display: flex; flex-direction: column; gap: 4px; }
-        .input-group label { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; }
-        .input-group input[type="text"] { background: #1a1a20; color: #fff; border: 1px solid #555; padding: 8px 10px; border-radius: 4px; font-family: inherit; font-size: 13px; }
+        .input-group label { font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: bold; }
+        .input-group input[type="text"] { background: #16161e; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 4px; }
         .input-group input[type="color"] { width: 100%; height: 36px; border: none; border-radius: 4px; cursor: pointer; background: transparent; }
-        
-        .save-btn { background: var(--accent); color: white; font-weight: bold; border: none; padding: 10px; cursor: pointer; border-radius: 4px; transition: background 0.2s; margin-top: 5px; }
-        .save-btn:hover { background: var(--accent-hover); }
-        
-        /* Main Code Editor Header */
-        .code-header { background: #1a1a20; padding: 8px 18px; font-size: 13px; font-weight: bold; color: #bbb; display: flex; justify-content: space-between; align-items: center; }
-        #main-code { width: 100%; height: 100%; background: #1e1e1e; color: #9cdcfe; border: none; padding: 16px; font-family: 'Fira Code', 'Courier New', Courier, monospace; font-size: 13px; resize: none; outline: none; line-height: 1.5; }
-        
-        /* Preview Iframe */
+
+        .save-btn { background: var(--accent); color: #111; font-weight: bold; border: none; padding: 10px; border-radius: 4px; cursor: pointer; margin-top: 5px; }
+
+        .code-header { background: #16161e; padding: 8px 18px; font-size: 13px; font-weight: bold; color: #bbb; display: flex; justify-content: space-between; }
+        #main-code { width: 100%; height: 100%; background: #1e1e1e; color: #9cdcfe; border: none; padding: 16px; font-family: monospace; font-size: 13px; resize: none; outline: none; line-height: 1.5; }
         #preview-frame { width: 100%; height: 100%; border: none; background: #fff; }
-        
-        /* Color box preview */
-        .color-box { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 5px rgba(0,0,0,0.5); display: inline-block; }
 
-        /* Floating Context Menu / Style Inspector for Preview Right-Click */
-        .context-menu {
-            position: fixed;
-            display: none;
-            background: #2b2b36;
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            padding: 14px;
-            width: 260px;
-            z-index: 1000;
-            flex-direction: column;
-            gap: 10px;
-            animation: fadeIn 0.15s ease;
-        }
-        .context-menu-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #444;
-            padding-bottom: 6px;
-            margin-bottom: 4px;
-        }
-        .context-menu-header span {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--accent-hover);
-            text-transform: uppercase;
-        }
-        .context-menu-close {
-            background: none;
-            border: none;
-            color: var(--danger);
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-        }
+        .color-box { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; display: inline-block; }
 
-        @keyframes slideUp {
-            from { transform: translateY(15px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        /* Right Click Context Menu */
+        .context-menu { position: fixed; display: none; background: #22222d; border: 1px solid var(--accent); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); padding: 14px; width: 260px; z-index: 1000; flex-direction: column; gap: 10px; }
+        .context-menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 6px; }
+        .context-menu-header span { font-size: 12px; font-weight: bold; color: var(--accent); }
+        .context-menu-close { background: none; border: none; color: var(--danger); cursor: pointer; font-weight: bold; }
+
+        @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div class="sidebar" id="sidebar">
-        <button class="sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">◀</button>
-        
+        <button class="sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()">◀</button>
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('colors', event)">Colours</button>
             <button class="tab-btn" onclick="switchTab('texts', event)">Texts</button>
             <button class="tab-btn" onclick="switchTab('buttons', event)">Buttons</button>
         </div>
-        
-        <div class="item-list" id="sidebar-list">
-            </div>
+        <div class="item-list" id="sidebar-list"></div>
 
         <div class="element-editor" id="quick-editor">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span id="editor-title" style="font-size: 13px; font-weight: bold; color: #fff;">Edit Properties</span>
-                <button onclick="closeEditor()" style="background: none; border: none; color: var(--danger); cursor: pointer; font-weight: bold;">✕</button>
+                <span id="editor-title" style="font-size: 13px; font-weight: bold; color: #fff;">Edit Element</span>
+                <button onclick="closeEditor()" style="background: none; border: none; color: var(--danger); font-weight: bold; cursor: pointer;">✕</button>
             </div>
-            
-            <div id="visual-editor-fields">
-                </div>
-
-            <button class="save-btn" onclick="applyVisualEdit()">Apply Changes</button>
+            <div id="visual-editor-fields"></div>
         </div>
     </div>
 
     <div class="main-content" id="main-content">
-        
         <div class="top-editor">
             <div class="code-header">
                 <span>Master HTML Code</span>
-                <span style="font-size: 11px; font-weight: normal; color: #888;">(Live Sync Enabled)</span>
+                <span style="font-size: 11px; color: #888;">Live Sync Enabled</span>
             </div>
-            <textarea id="main-code" onkeyup="updateLivePreview()">
+           <textarea id="main-code" onkeyup="updateLivePreview()">
 <div style="background-color: #f4f4f9; padding: 40px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; border-radius: 12px; max-width: 600px; margin: 30px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
     <h2 style="color: #2c3e50; margin-bottom: 12px; font-size: 24px;">Welcome to Interactive Editor</h2>
     <p style="color: #7f8c8d; margin-bottom: 20px; font-size: 15px;">Right-click any element in the preview below to style it directly!</p>
-    
+
     <div style="display: flex; gap: 10px; margin-bottom: 20px;">
         <input type="text" placeholder="Enter full name" style="padding: 12px; border: 1px solid #cccccc; border-radius: 6px; flex: 1; outline: none;" />
         <button class="btn" style="background: #6c5ce7; color: #ffffff; padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Submit Now</button>
     </div>
-    
+
     <div class="popup" style="padding: 16px; border-left: 5px solid #ff7675; background: #ffeaa7; border-radius: 6px;">
         <h4 style="color: #d63031; margin-bottom: 6px;">Important Notice</h4>
         <p style="color: #636e72; font-size: 14px;">Try right-clicking on this text or box to change font, padding or colors!</p>
@@ -255,7 +119,6 @@
             </button>
             <iframe id="preview-frame"></iframe>
         </div>
-
     </div>
 
     <div class="context-menu" id="context-menu">
@@ -263,311 +126,247 @@
             <span id="ctx-element-tag">Style Inspector</span>
             <button class="context-menu-close" onclick="closeContextMenu()">✕</button>
         </div>
-        <div class="input-group">
-            <label>Text Content</label>
-            <input type="text" id="ctx-text" oninput="updateContextTarget()">
-        </div>
-        <div class="input-group">
-            <label>Text Color</label>
-            <input type="color" id="ctx-color" oninput="updateContextTarget()">
-        </div>
-        <div class="input-group">
-            <label>Background Color</label>
-            <input type="color" id="ctx-bg" oninput="updateContextTarget()">
-        </div>
-        <div class="input-group">
-            <label>Font Size (px)</label>
-            <input type="text" id="ctx-font-size" placeholder="16px" oninput="updateContextTarget()">
-        </div>
-        <div class="input-group">
-            <label>Padding (e.g. 10px 20px)</label>
-            <input type="text" id="ctx-padding" placeholder="10px" oninput="updateContextTarget()">
-        </div>
-        <div class="input-group">
-            <label>Border Radius (e.g. 8px)</label>
-            <input type="text" id="ctx-radius" placeholder="5px" oninput="updateContextTarget()">
-        </div>
+        <div class="input-group"><label>Text Content</label><input type="text" id="ctx-text" oninput="updateContextTarget()"></div>
+        <div class="input-group"><label>Text Color</label><input type="color" id="ctx-color" oninput="updateContextTarget()"></div>
+        <div class="input-group"><label>Background</label><input type="color" id="ctx-bg" oninput="updateContextTarget()"></div>
+        <div class="input-group"><label>Font Size</label><input type="text" id="ctx-font-size" oninput="updateContextTarget()"></div>
+        <div class="input-group"><label>Padding</label><input type="text" id="ctx-padding" oninput="updateContextTarget()"></div>
     </div>
 
     <script>
         let currentTab = 'colors';
-        let parsedDoc = null; 
-        let editableElements = []; 
+        let activeIframeDoc = null;
+        let editableElements = [];
         let currentEditIndex = null;
         let activeColorHex = null;
         let ctxTargetElement = null;
 
-        window.onload = () => {
-            updateLivePreview();
-        };
+        window.onload = updateLivePreview;
 
-        // 1. Sidebar Toggle (Hide/Show)
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.getElementById('sidebar-toggle');
-            sidebar.classList.toggle('collapsed');
-            
-            if (sidebar.classList.contains('collapsed')) {
-                toggleBtn.innerText = '▶';
-            } else {
-                toggleBtn.innerText = '◀';
-            }
+            document.getElementById('sidebar').classList.toggle('collapsed');
+            document.getElementById('sidebar-toggle').innerText = document.getElementById('sidebar').classList.contains('collapsed') ? '▶' : '◀';
         }
 
-        // 2. Expand/Collapse Preview Field
         function toggleExpandPreview() {
-            const mainContent = document.getElementById('main-content');
-            const expandIcon = document.getElementById('expand-icon');
-            const expandText = document.getElementById('expand-text');
-            
-            mainContent.classList.toggle('preview-expanded');
-            
-            if (mainContent.classList.contains('preview-expanded')) {
-                expandIcon.innerText = '▼';
-                expandText.innerText = 'Restore Split View';
-            } else {
-                expandIcon.innerText = '▲';
-                expandText.innerText = 'Full Preview';
-            }
+            const main = document.getElementById('main-content');
+            main.classList.toggle('preview-expanded');
+            document.getElementById('expand-icon').innerText = main.classList.contains('preview-expanded') ? '▼' : '▲';
+            document.getElementById('expand-text').innerText = main.classList.contains('preview-expanded') ? 'Restore View' : 'Full Preview';
         }
 
-        // 3. Tab Switcher
         function switchTab(tabName, event) {
             currentTab = tabName;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             if(event) event.target.classList.add('active');
             closeEditor();
+            if(activeIframeDoc) clearHighlighters(activeIframeDoc);
             populateSidebar();
         }
 
-        // 4. Live Preview Update & DOM Listener Attachment
         function updateLivePreview() {
             const code = document.getElementById('main-code').value;
             const iframe = document.getElementById('preview-frame');
-            
             iframe.srcdoc = code;
-            
-            iframe.onload = () => {
-                attachIframeRightClick();
-            };
 
-            const parser = new DOMParser();
-            parsedDoc = parser.parseFromString(code, 'text/html');
-            populateSidebar();
+            iframe.onload = () => {
+                activeIframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                injectSmartHighlighter(activeIframeDoc);
+                attachRightClick(activeIframeDoc);
+                populateSidebar();
+            };
         }
 
-        // 5. Populate Sidebar Elements
+        // ==========================================
+        // 🔥 MAGIC HIGHLIGHTER & AUTO-REVEAL LOGIC
+        // ==========================================
+        function injectSmartHighlighter(doc) {
+            if(doc.getElementById('smart-editor-styles')) return;
+            const style = doc.createElement('style');
+            style.id = 'smart-editor-styles';
+            style.innerHTML = `
+                @keyframes redAntMarch {
+                    0% { background-position: 0 0, 100% 100%, 0 100%, 100% 0; }
+                    100% { background-position: -20px 0, calc(100% + 20px) 100%, 0 calc(100% - 20px), 100% 20px; }
+                }
+                .magic-hl-box {
+                    position: absolute; pointer-events: none; z-index: 999999;
+                    background: transparent;
+                    background-image: linear-gradient(90deg, red 50%, transparent 50%), linear-gradient(90deg, red 50%, transparent 50%), linear-gradient(0deg, red 50%, transparent 50%), linear-gradient(0deg, red 50%, transparent 50%);
+                    background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+                    background-size: 12px 2px, 12px 2px, 2px 12px, 2px 12px;
+                    animation: redAntMarch 0.7s linear infinite;
+                    border-radius: 4px;
+                }
+                .force-visible { display: block !important; opacity: 1 !important; visibility: visible !important; }
+            `;
+            doc.head.appendChild(style);
+        }
+
+        function clearHighlighters(doc) {
+            doc.querySelectorAll('.magic-hl-box').forEach(el => el.remove());
+        }
+
+        function highlightAndCenterElement(el, doc) {
+            clearHighlighters(doc);
+
+            // Auto-Reveal Hidden Parents (Popups)
+            let curr = el;
+            while(curr && curr !== doc.body) {
+                const style = window.getComputedStyle(curr);
+                if(style.display === 'none' || style.opacity === '0' || style.visibility === 'hidden') {
+                    curr.classList.add('force-visible');
+                }
+                curr = curr.parentElement;
+            }
+
+            // Smooth Scroll Center
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Create Animated Red Border
+            setTimeout(() => {
+                const rect = el.getBoundingClientRect();
+                const hl = doc.createElement('div');
+                hl.className = 'magic-hl-box';
+                const sTop = doc.documentElement.scrollTop || doc.body.scrollTop;
+                const sLeft = doc.documentElement.scrollLeft || doc.body.scrollLeft;
+
+                hl.style.top = (rect.top + sTop - 6) + 'px';
+                hl.style.left = (rect.left + sLeft - 6) + 'px';
+                hl.style.width = (rect.width + 12) + 'px';
+                hl.style.height = (rect.height + 12) + 'px';
+                doc.body.appendChild(hl);
+            }, 50);
+        }
+
+        // ==========================================
+        // SIDEBAR & EDIT LOGIC
+        // ==========================================
         function populateSidebar() {
-            const sidebarList = document.getElementById('sidebar-list');
-            sidebarList.innerHTML = ''; 
-            editableElements = [];
+            const list = document.getElementById('sidebar-list');
+            list.innerHTML = ''; editableElements = [];
 
             if (currentTab === 'colors') {
-                const code = document.getElementById('main-code').value;
-                const colorRegex = /#(?:[0-9a-fA-F]{3}){1,2}/g;
-                const colors = [...new Set(code.match(colorRegex) || [])];
-                
-                if (colors.length === 0) sidebarList.innerHTML = '<p style="color:#888; text-align:center; padding: 20px;">No HEX colors found.</p>';
-
-                colors.forEach((color) => {
-                    sidebarList.innerHTML += `
-                        <div class="list-item" onclick="openColorEditor('${color}')">
-                            <span><strong style="text-transform: uppercase;">${color}</strong></span>
-                            <div class="color-box" style="background-color: ${color}"></div>
-                        </div>`;
+                const colors = [...new Set(document.getElementById('main-code').value.match(/#(?:[0-9a-fA-F]{3}){1,2}/g) || [])];
+                colors.forEach(col => {
+                    list.innerHTML += `<div class="list-item" onclick="openColorEditor('${col}')"><span>${col}</span><div class="color-box" style="background-color: ${col}"></div></div>`;
                 });
             } else {
-                let elements = [];
-                if (currentTab === 'buttons') {
-                    elements = parsedDoc.querySelectorAll('button, .btn');
-                } else if (currentTab === 'texts') {
-                    elements = parsedDoc.querySelectorAll('h1, h2, h3, h4, h5, p, span, a');
-                }
-
-                if (elements.length === 0) {
-                    sidebarList.innerHTML = '<p style="color:#888; text-align:center; padding: 20px;">No elements found.</p>';
-                    return;
-                }
-
-                elements.forEach((el, index) => {
+                let els = activeIframeDoc.querySelectorAll(currentTab === 'buttons' ? 'button, .btn' : 'h1, h2, h3, p, span');
+                els.forEach((el, i) => {
                     editableElements.push(el);
-                    const tagInfo = el.tagName.toLowerCase();
-                    const text = el.innerText.trim().substring(0, 20) || 'Empty Element';
-                    
-                    sidebarList.innerHTML += `
-                        <div class="list-item" onclick="openElementEditor(${index})">
-                            <div style="display: flex; flex-direction: column; gap: 3px;">
-                                <span style="color: var(--accent-hover); font-weight: bold;">&lt;${tagInfo}&gt;</span>
-                                <span style="color: #ccc; font-size: 11px;">"${text}..."</span>
-                            </div>
-                            <span style="font-size: 16px; color: #888;">✏️</span>
-                        </div>`;
+                    const tag = el.tagName.toLowerCase();
+                    const txt = el.innerText.trim().substring(0, 15) || 'Empty';
+                    list.innerHTML += `<div class="list-item" onclick="openElementEditor(${i})">
+                        <div><span style="color:var(--accent)"><b>&lt;${tag}&gt;</b></span> <span style="color:#aaa;font-size:11px">"${txt}..."</span></div>✏️</div>`;
                 });
             }
         }
 
         function closeEditor() {
             document.getElementById('quick-editor').classList.remove('active');
+            if(activeIframeDoc) clearHighlighters(activeIframeDoc);
         }
 
-        function openColorEditor(colorHex) {
-            activeColorHex = colorHex;
-            document.getElementById('editor-title').innerText = `Replace Global Color`;
-            
-            const fields = document.getElementById('visual-editor-fields');
-            fields.innerHTML = `
-                <div class="input-group">
-                    <label>Selected Color (${colorHex})</label>
-                    <input type="color" id="edit-color-picker" value="${colorHex}">
-                </div>
+        function openElementEditor(idx) {
+            currentEditIndex = idx;
+            const el = editableElements[idx];
+            highlightAndCenterElement(el, activeIframeDoc);
+
+            const bg = el.style.backgroundColor || window.getComputedStyle(el).backgroundColor;
+            const color = el.style.color || window.getComputedStyle(el).color;
+
+            document.getElementById('visual-editor-fields').innerHTML = `
+                <div class="input-group"><label>Text</label><input type="text" value="${el.innerText}" oninput="applyLiveDOMEdit('text', this.value)"></div>
+                ${currentTab === 'buttons' ? `<div class="input-group"><label>Background</label><input type="color" value="${rgb2hex(bg)}" oninput="applyLiveDOMEdit('bg', this.value)"></div>` : ''}
+                <div class="input-group"><label>Text Color</label><input type="color" value="${rgb2hex(color)}" oninput="applyLiveDOMEdit('color', this.value)"></div>
             `;
-            
             document.getElementById('quick-editor').classList.add('active');
         }
 
-        function openElementEditor(index) {
-            currentEditIndex = index;
-            const el = editableElements[index];
-            document.getElementById('editor-title').innerText = `Edit <${el.tagName.toLowerCase()}>`;
-            
-            const computedBg = el.style.backgroundColor || '#ffffff';
-            const computedColor = el.style.color || '#000000';
-            
-            const fields = document.getElementById('visual-editor-fields');
-            fields.innerHTML = `
-                <div class="input-group">
-                    <label>Text Content</label>
-                    <input type="text" id="edit-text" value="${el.innerText}">
-                </div>
-                ${currentTab === 'buttons' ? `
-                <div class="input-group">
-                    <label>Background Color</label>
-                    <input type="color" id="edit-bg-color" value="${rgb2hex(computedBg)}">
-                </div>
-                ` : ''}
-                <div class="input-group">
-                    <label>Text Color</label>
-                    <input type="color" id="edit-text-color" value="${rgb2hex(computedColor)}">
-                </div>
-            `;
-            
+        function openColorEditor(col) {
+            activeColorHex = col;
+            document.getElementById('visual-editor-fields').innerHTML = `<div class="input-group"><label>Replace ${col}</label><input type="color" value="${col}" oninput="applyGlobalColor(this.value)"></div>`;
             document.getElementById('quick-editor').classList.add('active');
         }
 
-        function applyVisualEdit() {
-            if (currentTab === 'colors') {
-                const newColor = document.getElementById('edit-color-picker').value;
-                let code = document.getElementById('main-code').value;
-                const regex = new RegExp(activeColorHex, 'gi');
-                document.getElementById('main-code').value = code.replace(regex, newColor);
-            } else {
-                const el = editableElements[currentEditIndex];
-                el.innerText = document.getElementById('edit-text').value;
-                el.style.color = document.getElementById('edit-text-color').value;
-                
-                if (currentTab === 'buttons') {
-                    el.style.backgroundColor = document.getElementById('edit-bg-color').value;
-                }
+        function applyLiveDOMEdit(type, val) {
+            const el = editableElements[currentEditIndex];
+            if(type === 'text') el.innerText = val;
+            if(type === 'bg') el.style.backgroundColor = val;
+            if(type === 'color') el.style.color = val;
 
-                document.getElementById('main-code').value = parsedDoc.body.innerHTML.trim();
-            }
+            highlightAndCenterElement(el, activeIframeDoc); // Adjust border size
+            syncToMainCode();
+        }
 
+        function applyGlobalColor(newCol) {
+            let code = document.getElementById('main-code').value;
+            document.getElementById('main-code').value = code.replace(new RegExp(activeColorHex, 'gi'), newCol);
             updateLivePreview();
-            closeEditor();
+            activeColorHex = newCol; // update reference
+        }
+
+        function syncToMainCode() {
+            // Temporarily hide our magic classes before saving code!
+            const hlBoxes = activeIframeDoc.querySelectorAll('.magic-hl-box');
+            const forced = activeIframeDoc.querySelectorAll('.force-visible');
+
+            hlBoxes.forEach(el => el.style.display = 'none');
+            forced.forEach(el => el.classList.remove('force-visible'));
+
+            document.getElementById('main-code').value = activeIframeDoc.body.innerHTML.trim();
+
+            // Put them back so editing remains smooth
+            hlBoxes.forEach(el => el.style.display = 'block');
+            forced.forEach(el => el.classList.add('force-visible'));
         }
 
         function rgb2hex(rgb) {
-            if (!rgb || rgb.indexOf('rgb') === -1) return '#000000';
-            let match = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-            if (!match) return '#000000';
-            const hex = x => ("0" + parseInt(x).toString(16)).slice(-2);
-            return "#" + hex(match[1]) + hex(match[2]) + hex(match[3]);
+            let m = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            return m ? "#" + ("0" + parseInt(m[1]).toString(16)).slice(-2) + ("0" + parseInt(m[2]).toString(16)).slice(-2) + ("0" + parseInt(m[3]).toString(16)).slice(-2) : rgb;
         }
 
         // ==========================================
-        // 6. RIGHT-CLICK DIRECT STYLE EDITOR LOGIC
+        // RIGHT-CLICK CONTEXT MENU
         // ==========================================
-        function attachIframeRightClick() {
-            const iframe = document.getElementById('preview-frame');
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            if (!iframeDoc) return;
-
-            iframeDoc.addEventListener('contextmenu', (e) => {
+        function attachRightClick(doc) {
+            doc.addEventListener('contextmenu', e => {
                 e.preventDefault();
-                const target = e.target;
-                
-                if (!target || target === iframeDoc.body || target === iframeDoc.documentElement) return;
+                if(!e.target || e.target === doc.body) return;
+                ctxTargetElement = e.target;
 
-                ctxTargetElement = target;
+                highlightAndCenterElement(ctxTargetElement, doc); // Highlight clicked element
 
-                const iframeRect = iframe.getBoundingClientRect();
-                let x = iframeRect.left + e.clientX;
-                let y = iframeRect.top + e.clientY;
+                let x = document.getElementById('preview-frame').getBoundingClientRect().left + e.clientX;
+                let y = document.getElementById('preview-frame').getBoundingClientRect().top + e.clientY;
 
-                if (x + 270 > window.innerWidth) x = window.innerWidth - 280;
-                if (y + 350 > window.innerHeight) y = window.innerHeight - 360;
+                const menu = document.getElementById('context-menu');
+                document.getElementById('ctx-text').value = ctxTargetElement.innerText;
+                document.getElementById('ctx-color').value = rgb2hex(window.getComputedStyle(ctxTargetElement).color);
+                document.getElementById('ctx-bg').value = rgb2hex(window.getComputedStyle(ctxTargetElement).backgroundColor);
+                document.getElementById('ctx-font-size').value = window.getComputedStyle(ctxTargetElement).fontSize;
 
-                openContextMenu(x, y, target);
+                menu.style.left = Math.min(x, window.innerWidth - 270) + 'px';
+                menu.style.top = Math.min(y, window.innerHeight - 350) + 'px';
+                menu.style.display = 'flex';
             });
-
-            iframeDoc.addEventListener('click', () => {
-                closeContextMenu();
-            });
+            doc.addEventListener('click', () => { document.getElementById('context-menu').style.display = 'none'; clearHighlighters(doc); });
         }
 
-        function openContextMenu(x, y, el) {
-            const menu = document.getElementById('context-menu');
-            document.getElementById('ctx-element-tag').innerText = `<${el.tagName.toLowerCase()}> Direct Editor`;
-            
-            document.getElementById('ctx-text').value = el.children.length === 0 ? el.innerText : '';
-            document.getElementById('ctx-color').value = rgb2hex(window.getComputedStyle(el).color);
-            document.getElementById('ctx-bg').value = rgb2hex(window.getComputedStyle(el).backgroundColor);
-            document.getElementById('ctx-font-size').value = el.style.fontSize || window.getComputedStyle(el).fontSize;
-            document.getElementById('ctx-padding').value = el.style.padding || '';
-            document.getElementById('ctx-radius').value = el.style.borderRadius || '';
-
-            menu.style.left = `${x}px`;
-            menu.style.top = `${y}px`;
-            menu.style.display = 'flex';
-        }
-
-        function closeContextMenu() {
-            document.getElementById('context-menu').style.display = 'none';
-        }
+        function closeContextMenu() { document.getElementById('context-menu').style.display = 'none'; }
 
         function updateContextTarget() {
-            if (!ctxTargetElement) return;
+            if(!ctxTargetElement) return;
+            ctxTargetElement.innerText = document.getElementById('ctx-text').value;
+            ctxTargetElement.style.color = document.getElementById('ctx-color').value;
+            ctxTargetElement.style.backgroundColor = document.getElementById('ctx-bg').value;
+            ctxTargetElement.style.fontSize = document.getElementById('ctx-font-size').value;
+            ctxTargetElement.style.padding = document.getElementById('ctx-padding').value;
 
-            const textVal = document.getElementById('ctx-text').value;
-            const colorVal = document.getElementById('ctx-color').value;
-            const bgVal = document.getElementById('ctx-bg').value;
-            const fontVal = document.getElementById('ctx-font-size').value;
-            const padVal = document.getElementById('ctx-padding').value;
-            const radVal = document.getElementById('ctx-radius').value;
-
-            if (ctxTargetElement.children.length === 0 && textVal !== '') {
-                ctxTargetElement.innerText = textVal;
-            }
-            
-            ctxTargetElement.style.color = colorVal;
-            ctxTargetElement.style.backgroundColor = bgVal;
-            if (fontVal) ctxTargetElement.style.fontSize = fontVal;
-            if (padVal) ctxTargetElement.style.padding = padVal;
-            if (radVal) ctxTargetElement.style.borderRadius = radVal;
-
-            const iframe = document.getElementById('preview-frame');
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            if (iframeDoc && iframeDoc.body) {
-                document.getElementById('main-code').value = iframeDoc.body.innerHTML.trim();
-            }
+            highlightAndCenterElement(ctxTargetElement, activeIframeDoc);
+            syncToMainCode();
         }
-
-        window.addEventListener('click', (e) => {
-            const menu = document.getElementById('context-menu');
-            if (!menu.contains(e.target) && e.target.id !== 'preview-frame') {
-                closeContextMenu();
-            }
-        });
     </script>
 </body>
 </html>

@@ -3,217 +3,571 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Custom HTML Editor</title>
+    <title>Ultra Advanced Visual HTML Editor</title>
     <style>
-        :root { --bg: #1e1e1e; --sidebar: #252526; --text: #d4d4d4; --accent: #007acc; }
+        :root { 
+            --bg: #1e1e24; 
+            --sidebar: #252530; 
+            --panel-bg: #323242;
+            --text: #e0e0e0; 
+            --accent: #6c5ce7; 
+            --accent-hover: #a29bfe;
+            --danger: #ff7675;
+            --border: #111118;
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; background-color: var(--bg); color: var(--text); }
+        body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; display: flex; height: 100vh; background-color: var(--bg); color: var(--text); overflow: hidden; position: relative; }
         
         /* Layout Structure */
-        .sidebar { width: 300px; background: var(--sidebar); display: flex; flex-direction: column; border-right: 1px solid #333; }
-        .main-content { flex: 1; display: flex; flex-direction: column; }
-        .top-editor { flex: 1; display: flex; flex-direction: column; border-bottom: 1px solid #333; }
-        .bottom-preview { flex: 1; background: #fff; }
+        .sidebar { 
+            width: 320px; 
+            background: var(--sidebar); 
+            display: flex; 
+            flex-direction: column; 
+            border-right: 2px solid var(--border); 
+            position: relative; 
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 20;
+            flex-shrink: 0;
+        }
+        
+        .sidebar.collapsed {
+            margin-left: -320px;
+        }
+
+        /* Sidebar Collapse/Expand Toggle Button */
+        .sidebar-toggle-btn {
+            position: absolute;
+            right: -18px;
+            top: 15px;
+            width: 18px;
+            height: 38px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            box-shadow: 3px 0 6px rgba(0,0,0,0.3);
+            z-index: 25;
+            transition: background 0.2s;
+        }
+        .sidebar-toggle-btn:hover { background: var(--accent-hover); }
+
+        .main-content { flex: 1; display: flex; flex-direction: column; position: relative; height: 100vh; overflow: hidden; }
+        
+        /* Top Editor Area */
+        .top-editor { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            border-bottom: 2px solid var(--border); 
+            background: #1e1e1e; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 0;
+        }
+        
+        /* When preview is expanded, hide top editor */
+        .main-content.preview-expanded .top-editor {
+            display: none !important;
+        }
+
+        /* Bottom Preview Area */
+        .bottom-preview { 
+            flex: 1.2; 
+            background: #ffffff; 
+            position: relative; 
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .main-content.preview-expanded .bottom-preview {
+            flex: 1;
+            height: 100vh;
+        }
+
+        /* Preview Expand/Collapse Button at Top Edge Middle */
+        .preview-expand-btn {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: #ffffff;
+            border: none;
+            padding: 4px 16px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 0 0 8px 8px;
+            cursor: pointer;
+            z-index: 30;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .preview-expand-btn:hover {
+            background: var(--accent-hover);
+            padding-bottom: 6px;
+        }
         
         /* Sidebar Tabs */
-        .tabs { display: flex; flex-wrap: wrap; background: #2d2d2d; }
-        .tab-btn { flex: 1 1 33.33%; padding: 10px 5px; background: none; border: none; color: #888; cursor: pointer; font-size: 13px; border-bottom: 2px solid transparent; }
-        .tab-btn.active { color: #fff; border-bottom: 2px solid var(--accent); background: var(--sidebar); }
+        .tabs { display: flex; background: #1a1a20; }
+        .tab-btn { flex: 1; padding: 12px 5px; background: none; border: none; color: #888; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab-btn:hover { color: #fff; }
+        .tab-btn.active { color: #fff; border-bottom: 3px solid var(--accent); background: var(--sidebar); }
         
-        /* Item Lists in Sidebar */
-        .item-list { padding: 10px; overflow-y: auto; flex: 1; }
-        .list-item { background: #333; padding: 10px; margin-bottom: 8px; border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
-        .list-item:hover { background: #444; }
+        /* Item Lists */
+        .item-list { padding: 15px; overflow-y: auto; flex: 1; }
+        .list-item { background: var(--panel-bg); padding: 12px; margin-bottom: 10px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: space-between; transition: transform 0.2s, background 0.2s; border: 1px solid transparent; }
+        .list-item:hover { background: #4a4a5a; border-color: var(--accent); transform: translateY(-2px); }
         
-        /* Specific Element Editor Modal/Panel */
-        .element-editor { display: none; padding: 15px; background: #2d2d2d; border-top: 1px solid #444; }
-        .element-editor.active { display: flex; flex-direction: column; gap: 10px; }
-        .element-editor textarea { height: 100px; background: #1e1e1e; color: #fff; border: 1px solid #555; padding: 8px; font-family: monospace; }
-        .save-btn { background: var(--accent); color: white; border: none; padding: 8px; cursor: pointer; border-radius: 4px; }
+        /* Sidebar Quick Editor Panel */
+        .element-editor { display: none; padding: 18px; background: var(--sidebar); border-top: 2px solid var(--border); box-shadow: 0 -4px 10px rgba(0,0,0,0.2); }
+        .element-editor.active { display: flex; flex-direction: column; gap: 10px; animation: slideUp 0.3s ease; }
         
-        /* Main Code Editor */
-        .code-header { background: #2d2d2d; padding: 8px 15px; font-size: 14px; color: #aaa; }
-        #main-code { width: 100%; height: 100%; background: var(--bg); color: #9cdcfe; border: none; padding: 15px; font-family: 'Courier New', Courier, monospace; font-size: 14px; resize: none; outline: none; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        .input-group label { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; }
+        .input-group input[type="text"] { background: #1a1a20; color: #fff; border: 1px solid #555; padding: 8px 10px; border-radius: 4px; font-family: inherit; font-size: 13px; }
+        .input-group input[type="color"] { width: 100%; height: 36px; border: none; border-radius: 4px; cursor: pointer; background: transparent; }
+        
+        .save-btn { background: var(--accent); color: white; font-weight: bold; border: none; padding: 10px; cursor: pointer; border-radius: 4px; transition: background 0.2s; margin-top: 5px; }
+        .save-btn:hover { background: var(--accent-hover); }
+        
+        /* Main Code Editor Header */
+        .code-header { background: #1a1a20; padding: 8px 18px; font-size: 13px; font-weight: bold; color: #bbb; display: flex; justify-content: space-between; align-items: center; }
+        #main-code { width: 100%; height: 100%; background: #1e1e1e; color: #9cdcfe; border: none; padding: 16px; font-family: 'Fira Code', 'Courier New', Courier, monospace; font-size: 13px; resize: none; outline: none; line-height: 1.5; }
         
         /* Preview Iframe */
-        #preview-frame { width: 100%; height: 100%; border: none; }
+        #preview-frame { width: 100%; height: 100%; border: none; background: #fff; }
         
         /* Color box preview */
-        .color-box { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #000; display: inline-block; }
+        .color-box { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 5px rgba(0,0,0,0.5); display: inline-block; }
+
+        /* Floating Context Menu / Style Inspector for Preview Right-Click */
+        .context-menu {
+            position: fixed;
+            display: none;
+            background: #2b2b36;
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            padding: 14px;
+            width: 260px;
+            z-index: 1000;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeIn 0.15s ease;
+        }
+        .context-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+            padding-bottom: 6px;
+            margin-bottom: 4px;
+        }
+        .context-menu-header span {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--accent-hover);
+            text-transform: uppercase;
+        }
+        .context-menu-close {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(15px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
+        <button class="sidebar-toggle-btn" id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">◀</button>
+        
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('colors')">Colours</button>
-            <button class="tab-btn" onclick="switchTab('buttons')">Buttons</button>
-            <button class="tab-btn" onclick="switchTab('inputs')">Inputs</button>
-            <button class="tab-btn" onclick="switchTab('popups')">Pop-ups</button>
+            <button class="tab-btn active" onclick="switchTab('colors', event)">Colours</button>
+            <button class="tab-btn" onclick="switchTab('texts', event)">Texts</button>
+            <button class="tab-btn" onclick="switchTab('buttons', event)">Buttons</button>
         </div>
         
         <div class="item-list" id="sidebar-list">
             </div>
 
         <div class="element-editor" id="quick-editor">
-            <span id="editor-title" style="font-size: 12px; color: #aaa;">Edit Element</span>
-            <textarea id="quick-edit-code"></textarea>
-            <input type="color" id="color-picker" style="display: none; width: 100%; height: 40px;">
-            <button class="save-btn" onclick="saveQuickEdit()">Update Code</button>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="editor-title" style="font-size: 13px; font-weight: bold; color: #fff;">Edit Properties</span>
+                <button onclick="closeEditor()" style="background: none; border: none; color: var(--danger); cursor: pointer; font-weight: bold;">✕</button>
+            </div>
+            
+            <div id="visual-editor-fields">
+                </div>
+
+            <button class="save-btn" onclick="applyVisualEdit()">Apply Changes</button>
         </div>
     </div>
 
-    <div class="main-content">
+    <div class="main-content" id="main-content">
+        
         <div class="top-editor">
-            <div class="code-header">Master HTML Code</div>
+            <div class="code-header">
+                <span>Master HTML Code</span>
+                <span style="font-size: 11px; font-weight: normal; color: #888;">(Live Sync Enabled)</span>
+            </div>
             <textarea id="main-code" onkeyup="updateLivePreview()">
-<div style="background-color: #f4f4f9; padding: 20px; font-family: sans-serif;">
-    <h2 style="color: #333333;">Welcome to Custom Editor</h2>
-    <input type="text" placeholder="Enter your name" style="padding: 10px; border: 1px solid #cccccc;" />
-    <button class="btn" style="background: #007acc; color: white; padding: 10px 20px; border: none; border-radius: 5px;">Submit Data</button>
+<div style="background-color: #f4f4f9; padding: 40px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; border-radius: 12px; max-width: 600px; margin: 30px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    <h2 style="color: #2c3e50; margin-bottom: 12px; font-size: 24px;">Welcome to Interactive Editor</h2>
+    <p style="color: #7f8c8d; margin-bottom: 20px; font-size: 15px;">Right-click any element in the preview below to style it directly!</p>
     
-    <div class="popup" style="margin-top: 20px; padding: 15px; border: 1px solid #ff0000; background: #ffeeee;">
-        <p>This is a warning popup window.</p>
-        <button style="background: #ff4444; color: white; border: none; padding: 5px 10px;">Close</button>
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <input type="text" placeholder="Enter full name" style="padding: 12px; border: 1px solid #cccccc; border-radius: 6px; flex: 1; outline: none;" />
+        <button class="btn" style="background: #6c5ce7; color: #ffffff; padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Submit Now</button>
+    </div>
+    
+    <div class="popup" style="padding: 16px; border-left: 5px solid #ff7675; background: #ffeaa7; border-radius: 6px;">
+        <h4 style="color: #d63031; margin-bottom: 6px;">Important Notice</h4>
+        <p style="color: #636e72; font-size: 14px;">Try right-clicking on this text or box to change font, padding or colors!</p>
     </div>
 </div>
             </textarea>
         </div>
+
         <div class="bottom-preview">
+            <button class="preview-expand-btn" id="expand-btn" onclick="toggleExpandPreview()">
+                <span id="expand-icon">▲</span> <span id="expand-text">Full Preview</span>
+            </button>
             <iframe id="preview-frame"></iframe>
+        </div>
+
+    </div>
+
+    <div class="context-menu" id="context-menu">
+        <div class="context-menu-header">
+            <span id="ctx-element-tag">Style Inspector</span>
+            <button class="context-menu-close" onclick="closeContextMenu()">✕</button>
+        </div>
+        <div class="input-group">
+            <label>Text Content</label>
+            <input type="text" id="ctx-text" oninput="updateContextTarget()">
+        </div>
+        <div class="input-group">
+            <label>Text Color</label>
+            <input type="color" id="ctx-color" oninput="updateContextTarget()">
+        </div>
+        <div class="input-group">
+            <label>Background Color</label>
+            <input type="color" id="ctx-bg" oninput="updateContextTarget()">
+        </div>
+        <div class="input-group">
+            <label>Font Size (px)</label>
+            <input type="text" id="ctx-font-size" placeholder="16px" oninput="updateContextTarget()">
+        </div>
+        <div class="input-group">
+            <label>Padding (e.g. 10px 20px)</label>
+            <input type="text" id="ctx-padding" placeholder="10px" oninput="updateContextTarget()">
+        </div>
+        <div class="input-group">
+            <label>Border Radius (e.g. 8px)</label>
+            <input type="text" id="ctx-radius" placeholder="5px" oninput="updateContextTarget()">
         </div>
     </div>
 
     <script>
         let currentTab = 'colors';
-        let currentEditTarget = null;
-        let currentColorMatch = '';
+        let parsedDoc = null; 
+        let editableElements = []; 
+        let currentEditIndex = null;
+        let activeColorHex = null;
+        let ctxTargetElement = null;
 
-        // 1. Initial Load
         window.onload = () => {
             updateLivePreview();
         };
 
-        // 2. Tab Switching Logic
-        function switchTab(tabName) {
-            currentTab = tabName;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.innerText.toLowerCase() === tabName || btn.innerText.toLowerCase().includes(tabName.substring(0,4))) {
-                    btn.classList.add('active');
-                }
-            });
-            document.getElementById('quick-editor').classList.remove('active');
-            updateSidebar();
+        // 1. Sidebar Toggle (Hide/Show)
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            sidebar.classList.toggle('collapsed');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                toggleBtn.innerText = '▶';
+            } else {
+                toggleBtn.innerText = '◀';
+            }
         }
 
-        // 3. Update Preview & Parse Elements
+        // 2. Expand/Collapse Preview Field
+        function toggleExpandPreview() {
+            const mainContent = document.getElementById('main-content');
+            const expandIcon = document.getElementById('expand-icon');
+            const expandText = document.getElementById('expand-text');
+            
+            mainContent.classList.toggle('preview-expanded');
+            
+            if (mainContent.classList.contains('preview-expanded')) {
+                expandIcon.innerText = '▼';
+                expandText.innerText = 'Restore Split View';
+            } else {
+                expandIcon.innerText = '▲';
+                expandText.innerText = 'Full Preview';
+            }
+        }
+
+        // 3. Tab Switcher
+        function switchTab(tabName, event) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if(event) event.target.classList.add('active');
+            closeEditor();
+            populateSidebar();
+        }
+
+        // 4. Live Preview Update & DOM Listener Attachment
         function updateLivePreview() {
             const code = document.getElementById('main-code').value;
             const iframe = document.getElementById('preview-frame');
+            
             iframe.srcdoc = code;
-            updateSidebar();
+            
+            iframe.onload = () => {
+                attachIframeRightClick();
+            };
+
+            const parser = new DOMParser();
+            parsedDoc = parser.parseFromString(code, 'text/html');
+            populateSidebar();
         }
 
-        // 4. Populate Sidebar based on active tab
-        function updateSidebar() {
-            const code = document.getElementById('main-code').value;
+        // 5. Populate Sidebar Elements
+        function populateSidebar() {
             const sidebarList = document.getElementById('sidebar-list');
-            sidebarList.innerHTML = ''; // Clear list
+            sidebarList.innerHTML = ''; 
+            editableElements = [];
 
             if (currentTab === 'colors') {
-                // Regex to find HEX colors
+                const code = document.getElementById('main-code').value;
                 const colorRegex = /#(?:[0-9a-fA-F]{3}){1,2}/g;
                 const colors = [...new Set(code.match(colorRegex) || [])];
                 
-                colors.forEach(color => {
+                if (colors.length === 0) sidebarList.innerHTML = '<p style="color:#888; text-align:center; padding: 20px;">No HEX colors found.</p>';
+
+                colors.forEach((color) => {
                     sidebarList.innerHTML += `
-                        <div class="list-item" onclick="editColor('${color}')">
-                            <span>${color}</span>
+                        <div class="list-item" onclick="openColorEditor('${color}')">
+                            <span><strong style="text-transform: uppercase;">${color}</strong></span>
                             <div class="color-box" style="background-color: ${color}"></div>
                         </div>`;
                 });
             } else {
-                // Parse HTML to extract elements
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(code, 'text/html');
                 let elements = [];
-
                 if (currentTab === 'buttons') {
-                    elements = doc.querySelectorAll('button, input[type="button"], input[type="submit"], .btn');
-                } else if (currentTab === 'inputs') {
-                    elements = doc.querySelectorAll('input:not([type="button"]):not([type="submit"]), textarea, select');
-                } else if (currentTab === 'popups') {
-                    // Assuming popups have class 'modal', 'popup' or use <dialog>
-                    elements = doc.querySelectorAll('.modal, .popup, dialog');
+                    elements = parsedDoc.querySelectorAll('button, .btn');
+                } else if (currentTab === 'texts') {
+                    elements = parsedDoc.querySelectorAll('h1, h2, h3, h4, h5, p, span, a');
+                }
+
+                if (elements.length === 0) {
+                    sidebarList.innerHTML = '<p style="color:#888; text-align:center; padding: 20px;">No elements found.</p>';
+                    return;
                 }
 
                 elements.forEach((el, index) => {
-                    const tagInfo = el.tagName.toLowerCase() + (el.className ? `.${el.className.split(' ')[0]}` : '');
-                    const previewText = el.innerText ? el.innerText.substring(0, 15) + '...' : tagInfo;
-                    
-                    // We escape the outerHTML to store it safely in a data attribute
-                    const safeHtml = el.outerHTML.replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+                    editableElements.push(el);
+                    const tagInfo = el.tagName.toLowerCase();
+                    const text = el.innerText.trim().substring(0, 20) || 'Empty Element';
                     
                     sidebarList.innerHTML += `
-                        <div class="list-item" onclick="editElement(this)" data-raw="${safeHtml}">
-                            <span><strong>${tagInfo}</strong></span>
-                            <span style="font-size: 11px; color:#aaa;">${previewText}</span>
+                        <div class="list-item" onclick="openElementEditor(${index})">
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                <span style="color: var(--accent-hover); font-weight: bold;">&lt;${tagInfo}&gt;</span>
+                                <span style="color: #ccc; font-size: 11px;">"${text}..."</span>
+                            </div>
+                            <span style="font-size: 16px; color: #888;">✏️</span>
                         </div>`;
                 });
             }
         }
 
-        // 5. Open Quick Editor for Code Elements (Buttons, Inputs, etc.)
-        function editElement(listItemNode) {
-            const rawHtml = listItemNode.getAttribute('data-raw');
-            currentEditTarget = rawHtml; // Store the original exact string
-
-            document.getElementById('quick-editor').classList.add('active');
-            document.getElementById('color-picker').style.display = 'none';
-            document.getElementById('quick-edit-code').style.display = 'block';
-            
-            document.getElementById('editor-title').innerText = "Edit Element HTML/CSS";
-            
-            // Unescape the HTML to put in textarea
-            const unescaped = rawHtml.replace(/&apos;/g, "'").replace(/&quot;/g, '"');
-            document.getElementById('quick-edit-code').value = unescaped;
+        function closeEditor() {
+            document.getElementById('quick-editor').classList.remove('active');
         }
 
-        // 6. Open Quick Editor for Colors
-        function editColor(colorHex) {
-            currentColorMatch = colorHex;
+        function openColorEditor(colorHex) {
+            activeColorHex = colorHex;
+            document.getElementById('editor-title').innerText = `Replace Global Color`;
+            
+            const fields = document.getElementById('visual-editor-fields');
+            fields.innerHTML = `
+                <div class="input-group">
+                    <label>Selected Color (${colorHex})</label>
+                    <input type="color" id="edit-color-picker" value="${colorHex}">
+                </div>
+            `;
+            
             document.getElementById('quick-editor').classList.add('active');
-            
-            document.getElementById('quick-edit-code').style.display = 'none';
-            const colorPicker = document.getElementById('color-picker');
-            colorPicker.style.display = 'block';
-            colorPicker.value = colorHex;
-            
-            document.getElementById('editor-title').innerText = `Change Color: ${colorHex}`;
         }
 
-        // 7. Save Changes back to Master Code
-        function saveQuickEdit() {
-            let masterCode = document.getElementById('main-code').value;
+        function openElementEditor(index) {
+            currentEditIndex = index;
+            const el = editableElements[index];
+            document.getElementById('editor-title').innerText = `Edit <${el.tagName.toLowerCase()}>`;
+            
+            const computedBg = el.style.backgroundColor || '#ffffff';
+            const computedColor = el.style.color || '#000000';
+            
+            const fields = document.getElementById('visual-editor-fields');
+            fields.innerHTML = `
+                <div class="input-group">
+                    <label>Text Content</label>
+                    <input type="text" id="edit-text" value="${el.innerText}">
+                </div>
+                ${currentTab === 'buttons' ? `
+                <div class="input-group">
+                    <label>Background Color</label>
+                    <input type="color" id="edit-bg-color" value="${rgb2hex(computedBg)}">
+                </div>
+                ` : ''}
+                <div class="input-group">
+                    <label>Text Color</label>
+                    <input type="color" id="edit-text-color" value="${rgb2hex(computedColor)}">
+                </div>
+            `;
+            
+            document.getElementById('quick-editor').classList.add('active');
+        }
 
+        function applyVisualEdit() {
             if (currentTab === 'colors') {
-                const newColor = document.getElementById('color-picker').value;
-                // Replace all instances of the old color with the new color globally
-                const regex = new RegExp(currentColorMatch, 'gi');
-                masterCode = masterCode.replace(regex, newColor);
+                const newColor = document.getElementById('edit-color-picker').value;
+                let code = document.getElementById('main-code').value;
+                const regex = new RegExp(activeColorHex, 'gi');
+                document.getElementById('main-code').value = code.replace(regex, newColor);
             } else {
-                const newCodeSnippet = document.getElementById('quick-edit-code').value;
-                // Unescape original target to find and replace exactly in main code
-                const searchTarget = currentEditTarget.replace(/&apos;/g, "'").replace(/&quot;/g, '"');
-                masterCode = masterCode.replace(searchTarget, newCodeSnippet);
+                const el = editableElements[currentEditIndex];
+                el.innerText = document.getElementById('edit-text').value;
+                el.style.color = document.getElementById('edit-text-color').value;
+                
+                if (currentTab === 'buttons') {
+                    el.style.backgroundColor = document.getElementById('edit-bg-color').value;
+                }
+
+                document.getElementById('main-code').value = parsedDoc.body.innerHTML.trim();
             }
 
-            // Update Master Code and re-render
-            document.getElementById('main-code').value = masterCode;
-            document.getElementById('quick-editor').classList.remove('active');
             updateLivePreview();
+            closeEditor();
         }
+
+        function rgb2hex(rgb) {
+            if (!rgb || rgb.indexOf('rgb') === -1) return '#000000';
+            let match = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            if (!match) return '#000000';
+            const hex = x => ("0" + parseInt(x).toString(16)).slice(-2);
+            return "#" + hex(match[1]) + hex(match[2]) + hex(match[3]);
+        }
+
+        // ==========================================
+        // 6. RIGHT-CLICK DIRECT STYLE EDITOR LOGIC
+        // ==========================================
+        function attachIframeRightClick() {
+            const iframe = document.getElementById('preview-frame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            if (!iframeDoc) return;
+
+            iframeDoc.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const target = e.target;
+                
+                if (!target || target === iframeDoc.body || target === iframeDoc.documentElement) return;
+
+                ctxTargetElement = target;
+
+                const iframeRect = iframe.getBoundingClientRect();
+                let x = iframeRect.left + e.clientX;
+                let y = iframeRect.top + e.clientY;
+
+                if (x + 270 > window.innerWidth) x = window.innerWidth - 280;
+                if (y + 350 > window.innerHeight) y = window.innerHeight - 360;
+
+                openContextMenu(x, y, target);
+            });
+
+            iframeDoc.addEventListener('click', () => {
+                closeContextMenu();
+            });
+        }
+
+        function openContextMenu(x, y, el) {
+            const menu = document.getElementById('context-menu');
+            document.getElementById('ctx-element-tag').innerText = `<${el.tagName.toLowerCase()}> Direct Editor`;
+            
+            document.getElementById('ctx-text').value = el.children.length === 0 ? el.innerText : '';
+            document.getElementById('ctx-color').value = rgb2hex(window.getComputedStyle(el).color);
+            document.getElementById('ctx-bg').value = rgb2hex(window.getComputedStyle(el).backgroundColor);
+            document.getElementById('ctx-font-size').value = el.style.fontSize || window.getComputedStyle(el).fontSize;
+            document.getElementById('ctx-padding').value = el.style.padding || '';
+            document.getElementById('ctx-radius').value = el.style.borderRadius || '';
+
+            menu.style.left = `${x}px`;
+            menu.style.top = `${y}px`;
+            menu.style.display = 'flex';
+        }
+
+        function closeContextMenu() {
+            document.getElementById('context-menu').style.display = 'none';
+        }
+
+        function updateContextTarget() {
+            if (!ctxTargetElement) return;
+
+            const textVal = document.getElementById('ctx-text').value;
+            const colorVal = document.getElementById('ctx-color').value;
+            const bgVal = document.getElementById('ctx-bg').value;
+            const fontVal = document.getElementById('ctx-font-size').value;
+            const padVal = document.getElementById('ctx-padding').value;
+            const radVal = document.getElementById('ctx-radius').value;
+
+            if (ctxTargetElement.children.length === 0 && textVal !== '') {
+                ctxTargetElement.innerText = textVal;
+            }
+            
+            ctxTargetElement.style.color = colorVal;
+            ctxTargetElement.style.backgroundColor = bgVal;
+            if (fontVal) ctxTargetElement.style.fontSize = fontVal;
+            if (padVal) ctxTargetElement.style.padding = padVal;
+            if (radVal) ctxTargetElement.style.borderRadius = radVal;
+
+            const iframe = document.getElementById('preview-frame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            if (iframeDoc && iframeDoc.body) {
+                document.getElementById('main-code').value = iframeDoc.body.innerHTML.trim();
+            }
+        }
+
+        window.addEventListener('click', (e) => {
+            const menu = document.getElementById('context-menu');
+            if (!menu.contains(e.target) && e.target.id !== 'preview-frame') {
+                closeContextMenu();
+            }
+        });
     </script>
 </body>
 </html>

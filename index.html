@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Custom HTML Editor</title>
+    <style>
+        :root { --bg: #1e1e1e; --sidebar: #252526; --text: #d4d4d4; --accent: #007acc; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; background-color: var(--bg); color: var(--text); }
+        
+        /* Layout Structure */
+        .sidebar { width: 300px; background: var(--sidebar); display: flex; flex-direction: column; border-right: 1px solid #333; }
+        .main-content { flex: 1; display: flex; flex-direction: column; }
+        .top-editor { flex: 1; display: flex; flex-direction: column; border-bottom: 1px solid #333; }
+        .bottom-preview { flex: 1; background: #fff; }
+        
+        /* Sidebar Tabs */
+        .tabs { display: flex; flex-wrap: wrap; background: #2d2d2d; }
+        .tab-btn { flex: 1 1 33.33%; padding: 10px 5px; background: none; border: none; color: #888; cursor: pointer; font-size: 13px; border-bottom: 2px solid transparent; }
+        .tab-btn.active { color: #fff; border-bottom: 2px solid var(--accent); background: var(--sidebar); }
+        
+        /* Item Lists in Sidebar */
+        .item-list { padding: 10px; overflow-y: auto; flex: 1; }
+        .list-item { background: #333; padding: 10px; margin-bottom: 8px; border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
+        .list-item:hover { background: #444; }
+        
+        /* Specific Element Editor Modal/Panel */
+        .element-editor { display: none; padding: 15px; background: #2d2d2d; border-top: 1px solid #444; }
+        .element-editor.active { display: flex; flex-direction: column; gap: 10px; }
+        .element-editor textarea { height: 100px; background: #1e1e1e; color: #fff; border: 1px solid #555; padding: 8px; font-family: monospace; }
+        .save-btn { background: var(--accent); color: white; border: none; padding: 8px; cursor: pointer; border-radius: 4px; }
+        
+        /* Main Code Editor */
+        .code-header { background: #2d2d2d; padding: 8px 15px; font-size: 14px; color: #aaa; }
+        #main-code { width: 100%; height: 100%; background: var(--bg); color: #9cdcfe; border: none; padding: 15px; font-family: 'Courier New', Courier, monospace; font-size: 14px; resize: none; outline: none; }
+        
+        /* Preview Iframe */
+        #preview-frame { width: 100%; height: 100%; border: none; }
+        
+        /* Color box preview */
+        .color-box { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #000; display: inline-block; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('colors')">Colours</button>
+            <button class="tab-btn" onclick="switchTab('buttons')">Buttons</button>
+            <button class="tab-btn" onclick="switchTab('inputs')">Inputs</button>
+            <button class="tab-btn" onclick="switchTab('popups')">Pop-ups</button>
+        </div>
+        
+        <div class="item-list" id="sidebar-list">
+            </div>
+
+        <div class="element-editor" id="quick-editor">
+            <span id="editor-title" style="font-size: 12px; color: #aaa;">Edit Element</span>
+            <textarea id="quick-edit-code"></textarea>
+            <input type="color" id="color-picker" style="display: none; width: 100%; height: 40px;">
+            <button class="save-btn" onclick="saveQuickEdit()">Update Code</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-editor">
+            <div class="code-header">Master HTML Code</div>
+            <textarea id="main-code" onkeyup="updateLivePreview()">
+<div style="background-color: #f4f4f9; padding: 20px; font-family: sans-serif;">
+    <h2 style="color: #333333;">Welcome to Custom Editor</h2>
+    <input type="text" placeholder="Enter your name" style="padding: 10px; border: 1px solid #cccccc;" />
+    <button class="btn" style="background: #007acc; color: white; padding: 10px 20px; border: none; border-radius: 5px;">Submit Data</button>
+    
+    <div class="popup" style="margin-top: 20px; padding: 15px; border: 1px solid #ff0000; background: #ffeeee;">
+        <p>This is a warning popup window.</p>
+        <button style="background: #ff4444; color: white; border: none; padding: 5px 10px;">Close</button>
+    </div>
+</div>
+            </textarea>
+        </div>
+        <div class="bottom-preview">
+            <iframe id="preview-frame"></iframe>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'colors';
+        let currentEditTarget = null;
+        let currentColorMatch = '';
+
+        // 1. Initial Load
+        window.onload = () => {
+            updateLivePreview();
+        };
+
+        // 2. Tab Switching Logic
+        function switchTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.innerText.toLowerCase() === tabName || btn.innerText.toLowerCase().includes(tabName.substring(0,4))) {
+                    btn.classList.add('active');
+                }
+            });
+            document.getElementById('quick-editor').classList.remove('active');
+            updateSidebar();
+        }
+
+        // 3. Update Preview & Parse Elements
+        function updateLivePreview() {
+            const code = document.getElementById('main-code').value;
+            const iframe = document.getElementById('preview-frame');
+            iframe.srcdoc = code;
+            updateSidebar();
+        }
+
+        // 4. Populate Sidebar based on active tab
+        function updateSidebar() {
+            const code = document.getElementById('main-code').value;
+            const sidebarList = document.getElementById('sidebar-list');
+            sidebarList.innerHTML = ''; // Clear list
+
+            if (currentTab === 'colors') {
+                // Regex to find HEX colors
+                const colorRegex = /#(?:[0-9a-fA-F]{3}){1,2}/g;
+                const colors = [...new Set(code.match(colorRegex) || [])];
+                
+                colors.forEach(color => {
+                    sidebarList.innerHTML += `
+                        <div class="list-item" onclick="editColor('${color}')">
+                            <span>${color}</span>
+                            <div class="color-box" style="background-color: ${color}"></div>
+                        </div>`;
+                });
+            } else {
+                // Parse HTML to extract elements
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(code, 'text/html');
+                let elements = [];
+
+                if (currentTab === 'buttons') {
+                    elements = doc.querySelectorAll('button, input[type="button"], input[type="submit"], .btn');
+                } else if (currentTab === 'inputs') {
+                    elements = doc.querySelectorAll('input:not([type="button"]):not([type="submit"]), textarea, select');
+                } else if (currentTab === 'popups') {
+                    // Assuming popups have class 'modal', 'popup' or use <dialog>
+                    elements = doc.querySelectorAll('.modal, .popup, dialog');
+                }
+
+                elements.forEach((el, index) => {
+                    const tagInfo = el.tagName.toLowerCase() + (el.className ? `.${el.className.split(' ')[0]}` : '');
+                    const previewText = el.innerText ? el.innerText.substring(0, 15) + '...' : tagInfo;
+                    
+                    // We escape the outerHTML to store it safely in a data attribute
+                    const safeHtml = el.outerHTML.replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+                    
+                    sidebarList.innerHTML += `
+                        <div class="list-item" onclick="editElement(this)" data-raw="${safeHtml}">
+                            <span><strong>${tagInfo}</strong></span>
+                            <span style="font-size: 11px; color:#aaa;">${previewText}</span>
+                        </div>`;
+                });
+            }
+        }
+
+        // 5. Open Quick Editor for Code Elements (Buttons, Inputs, etc.)
+        function editElement(listItemNode) {
+            const rawHtml = listItemNode.getAttribute('data-raw');
+            currentEditTarget = rawHtml; // Store the original exact string
+
+            document.getElementById('quick-editor').classList.add('active');
+            document.getElementById('color-picker').style.display = 'none';
+            document.getElementById('quick-edit-code').style.display = 'block';
+            
+            document.getElementById('editor-title').innerText = "Edit Element HTML/CSS";
+            
+            // Unescape the HTML to put in textarea
+            const unescaped = rawHtml.replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+            document.getElementById('quick-edit-code').value = unescaped;
+        }
+
+        // 6. Open Quick Editor for Colors
+        function editColor(colorHex) {
+            currentColorMatch = colorHex;
+            document.getElementById('quick-editor').classList.add('active');
+            
+            document.getElementById('quick-edit-code').style.display = 'none';
+            const colorPicker = document.getElementById('color-picker');
+            colorPicker.style.display = 'block';
+            colorPicker.value = colorHex;
+            
+            document.getElementById('editor-title').innerText = `Change Color: ${colorHex}`;
+        }
+
+        // 7. Save Changes back to Master Code
+        function saveQuickEdit() {
+            let masterCode = document.getElementById('main-code').value;
+
+            if (currentTab === 'colors') {
+                const newColor = document.getElementById('color-picker').value;
+                // Replace all instances of the old color with the new color globally
+                const regex = new RegExp(currentColorMatch, 'gi');
+                masterCode = masterCode.replace(regex, newColor);
+            } else {
+                const newCodeSnippet = document.getElementById('quick-edit-code').value;
+                // Unescape original target to find and replace exactly in main code
+                const searchTarget = currentEditTarget.replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+                masterCode = masterCode.replace(searchTarget, newCodeSnippet);
+            }
+
+            // Update Master Code and re-render
+            document.getElementById('main-code').value = masterCode;
+            document.getElementById('quick-editor').classList.remove('active');
+            updateLivePreview();
+        }
+    </script>
+</body>
+</html>
